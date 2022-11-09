@@ -1,65 +1,91 @@
-# Phase 1 Project
+# Making Movies at Microsoft
 
-You've made it all the way through the first phase of this course - take a minute to celebrate your awesomeness!
+#### Contributing Members:Amos Kibet
 
-![awesome](https://raw.githubusercontent.com/learn-co-curriculum/dsc-phase-1-project/master/awesome.gif)
+### Project Overview
 
-Now you will put your new skills to use with a large end-of-Phase project! This project should take 20 to 30 hours to complete.
+Microsoft has stated their desire to enter the film business. They will establish a studio, but they are unfamiliar with the film business. Our goal is to collect, clean, and analyze movie data from various sources in order to make recommendations to Microsoft that will help them succeed in the movie business.
 
-## Project Overview
+### Data and Exploration
 
-For this project, you will use exploratory data analysis to generate insights for a business stakeholder.
+Data was provided for use and our group chose to use one of those datasets in conjunction with data that was retrieved via webscraping.
+The provided data set that was used in this project can be found at:
 
-### Business Problem
+[/zippedData/bom.movie_gross.csv](https://github.com/AmosMaru/dsc-phase-1-project/tree/master/zippedData)
 
-Microsoft sees all the big companies creating original video content and they want to get in on the fun. They have decided to create a new movie studio, but they don’t know anything about creating movies. You are charged with exploring what types of films are currently doing the best at the box office. You must then translate those findings into actionable insights that the head of Microsoft's new movie studio can use to help decide what type of films to create.
+The web-scraped data used in this project was collected from the following sources:
 
-### The Data
+1. https://www.the-numbers.com/movie/budgets/all/1
+2. https://www.imdb.com/search/title/?title_type=feature&num_votes=5000,&languages=en&sort=boxoffice_gross_us,desc&start=1&explore=genres&ref_=adv_nx
 
-In the folder `zippedData` are movie datasets from:
+In our analysis we explore and answer the following questions:
 
-* [Box Office Mojo](https://www.boxofficemojo.com/)
-* [IMDB](https://www.imdb.com/)
-* [Rotten Tomatoes](https://www.rottentomatoes.com/)
-* [TheMovieDB](https://www.themoviedb.org/)
-* [The Numbers](https://www.the-numbers.com/)
+1. What movies are the most profitable, and how much money should you spend?
+2. What genres of movies are most frequently made, and does more production translate into more profits?
+3. What is the best time of the year to release a movie?
+4. How do runtime and movie rating affect net profit, profit margin, and IMDb rating, if at all there is any?
 
-It is up to you to decide what data from this to use and how to use it. If you want to make this more challenging, you can scrape websites or make API calls to get additional data. If you are feeling overwhelmed or behind (e.g. struggled with the Phase 1 Code Challenge), we recommend you use only the following data files:
+## Question 1: What are the most profitable movies and how much should you spend?
 
-* imdb.title.basics
-* imdb.title.ratings
-* bom.movie_gross
+To answer this question and provide a recommendation we'll make use of a budgets dataframe called `imdb_budgets_df`. Our analysis will require that we use the data to calculate profit and profit margin.
 
-## Deliverables
+```
+imdb_budgets_df['Profit'] = imdb_budgets_df['Worldwide Gross'] - imdb_budgets_df['Production Budget']
 
-There are three deliverables for this project:
+imdb_budgets_df['Profit_Margin'] = (imdb_budgets_df['Worldwide Gross'] -
+                                    imdb_budgets_df['Production Budget'])/imdb_budgets_df['Worldwide Gross']
+```
 
-* A **GitHub repository**
-* A **Jupyter Notebook**
-* A **non-technical presentation**
+We will also create two columns called `Adjusted_Budget` and `Adjusted_Profit` where we recalculate a movie's budget and profit to account for inflation and allow us to perform analysis based on the value of the 2020 dollar.
 
-Review the "Project Submission & Review" page in the "Milestones Instructions" topic for instructions on creating and submitting your deliverables. Refer to the rubric associated with this assignment for specifications describing high-quality deliverables.
+We examine the overall trend of budget versus profit to see if there's any correlation.
 
-### Key Points
+![BudgetVProfit](pics/BudgetVProfit.png)
 
-* **Your analysis should yield three concrete business recommendations.** The ultimate purpose of exploratory analysis is not just to learn about the data, but to help an organization perform better. Explicitly relate your findings to business needs by recommending actions that you think the business (Microsoft) should take.
+We also take a look at the top 25 movies in terms of profit to understand their financial success and how closely we should attempt to emulate their budget. We can see in the graph below there are a few outliers so the median will end up being more useful in determining our final budget.
 
-* **Communicating about your work well is extremely important.** Your ability to provide value to an organization - or to land a job there - is directly reliant on your ability to communicate with them about what you have done and why it is valuable. Create a storyline your audience (the head of Microsoft's new movie studio) can follow by walking them through the steps of your process, highlighting the most important points and skipping over the rest.
+![ProfitBudgetTop25](pics/ProfitBudgetTop25.png)
 
-* **Use plenty of visualizations.** Visualizations are invaluable for exploring your data and making your findings accessible to a non-technical audience. Spotlight visuals in your presentation, but only ones that relate directly to your recommendations. Simple visuals are usually best (e.g. bar charts and line graphs), and don't forget to format them well (e.g. labels, titles).
+**Question 1 Conclusion**: We recommend that Microsoft should budget approximately $47,000,000 to make a movie. This should correlate with a profit margin above 82%.
 
-## Getting Started
+## Question 2: Which movie genres are most commonly produced and does quantity equate to higher net profits?
 
-Please start by reviewing this assignment, the rubric at the bottom of it, and the "Project Submission & Review" page. If you have any questions, please ask your instructor ASAP.
+We first count the number of movies in each genre and plot those results on a bar graph.
 
-Next, we recommend you check out [the Phase 1 Project Templates and Examples repo](https://github.com/learn-co-curriculum/dsc-project-template) and use the MVP template for your project.
+```
+m_by_genre = genre_budgets_df.groupby('Genre', as_index=False)['Movie'].count().sort_values(by='Movie', ascending=False)
+```
 
-Alternatively, you can fork [the Phase 1 Project Repository](https://github.com/learn-co-curriculum/dsc-phase-1-project), clone it locally, and work in the `student.ipynb` file. Make sure to also add and commit a PDF of your presentation to your repository with a file name of `presentation.pdf`.
+Using the same `groupby` method, we select the median net profit and profit margin for each genre. We use the median in this case as the mean is likely skewed by outliers. Outliers could either be movies with enormous profits or movies having negative profit.
 
-## Project Submission and Review
+![NetProfitGenre.png](pics/NetProfitGenre.png)
 
-Review the "Project Submission & Review" page in the "Milestones Instructions" topic to learn how to submit your project and how it will be reviewed. Your project must pass review for you to progress to the next Phase.
+![ProfitMarginGenre](pics/ProfitMarginGenre.png)
 
-## Summary
+Lastly, we look at the percent of net profit by genre. This informs us as to how Microsoft should allocate their movie budget to various films.
 
-This project will give you a valuable opportunity to develop your data science skills using real-world data. The end-of-phase projects are a critical part of the program because they give you a chance to bring together all the skills you've learned, apply them to realistic projects for a business stakeholder, practice communication skills, and get feedback to help you improve. You've got this!
+**Question 2 Conclusion**: We recommend that Microsoft should focus their efforts on the top 6 most profitable movie genres: Adventure, Action, Comedy, Drama, Sci-Fi and Animation. A further recommendation to focus on Sci-Fi and Animation due to less competition and a higher opportunity to profit.
+
+## Question 3: What is the best time of the year to release a movie?
+
+We start by converting the dates from the `imdb_budgets_df` dataframe to a datetime object. We then do a count by month to see the number of movies released in each month.
+
+When grouping by month, we can select the `Net Profit` and `Profit Margin` columns so that we can see which months have the most financial success.
+
+![MarginByMonth](pics/MarginByMonth.png)
+
+Finally we plot the net profit by month for a small selection of genres. We can see that there is a general trend amongst these genres for the profit in each month.
+
+![ProfitbyMonthbyGenre](pics/ProfitbyMonthbyGenre.png)
+
+**Question 3 Conclusion:** We recommend that Microsoft release the bulk of their movies, especially Animation, during the summer months (i.e. May-July). Adventure, Drama and Comedy movies would see similar success if released in November, but the recommendation remains to focus on summer.
+
+## Question 4: What impact, if any, does runtime and movie rating have on Net Profit, Profit Margin and IMDb rating?
+
+To answer this question we will only focus on the 4 ratings: G, PG, PG-13, and R. We then count the ratings to see how many movies fall within each category. From there we can examine the net profit and profit margin of genre to see which has the most financial success.
+
+It's also important to see the net profits of each rating by genre. We first do a `groupby` on rating and genre and then create a pivot table so that we can see the net profits of each rating in each genre. This will guide us as to what ratings should be targeted based on the genre of the movie being made.
+
+![ProfitbyGenrebyRating](pics/ProfitbyGenrebyRating.png)
+
+**Question 4 Conclusion**: We recommend that Microsoft take into consideration the rating of the movie based on the genre and target audience. If making animation movies, it is wise to stick to a G or PG rating, otherwise PG-13 is the sweetspot. In terms of runtime, there is little correlation in terms of overall profitability.
